@@ -1,13 +1,15 @@
 import 'dotenv/config';
-import { WebServer } from './core/server';
+import { WebServer } from './core/WebServer';
+import { registerUserRoutes } from './routes/users.router';
 
 const PORT = parseInt(process.env.PORT || '3000', 10);
 
 const server = new WebServer(PORT);
 
-server.addRoute('GET', '/', (_req, res) => {
-  res.writeHead(200, { 'Content-Type': 'application/json' });
-  res.end(JSON.stringify({ status: 'ok' }));
-});
+// server.addRoute(HTTP_METHODS.GET, '/{id}', (_req, res, params) => {
+//   const id = params?.id;
+//   res.ok({ message: `User ID: ${id}` });
+// });
+registerUserRoutes(server);
 
 server.start();
