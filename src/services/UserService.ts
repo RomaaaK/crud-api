@@ -19,26 +19,28 @@ class UserService {
     return user;
   }
 
-  public async createUser(data: object): Promise<User> {
-    const user = data as Omit<User, 'id'>;
-    this.validateRequiredFields({ id: '', ...user }, [
+  public async createUser(data: Omit<User, 'id'>): Promise<User> {
+    this.validateRequiredFields({ id: '', ...data }, [
       'username',
       'age',
       'hobbies',
     ]);
-    const createdUser = { id: uuidv4(), ...user };
+    const createdUser = { id: uuidv4(), ...data };
     UserRepository.save(createdUser);
     return createdUser;
   }
 
-  public async updateUser(id: string, userData: object): Promise<User> {
+  public async updateUser(
+    id: string,
+    userData: Partial<Omit<User, 'id'>>,
+  ): Promise<User> {
     if (!validate(id)) {
       throw new BedRequestError(`Invalid UUID: ${id}`);
     }
 
     const currentUser = await this.getUserById(id);
 
-    const { username, age, hobbies } = userData as Partial<Omit<User, 'id'>>;
+    const { username, age, hobbies } = userData;
 
     const updateData: Omit<User, 'id'> = {
       username: username ?? currentUser.username,
