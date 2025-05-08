@@ -13,11 +13,10 @@ export class BaseRepository<T extends { id: string }> {
     this.data.push(entity);
   }
 
-  public update(id: string, updated: Omit<T, 'id'>): boolean {
+  public update(id: string, updated: Omit<T, 'id'>): T {
     const index = this.data.findIndex((item) => item.id === id);
-    if (index === -1) return false;
     this.data[index] = { id, ...updated } as T;
-    return true;
+    return this.data[index];
   }
 
   public deleteById(id: string): boolean {

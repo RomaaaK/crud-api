@@ -1,15 +1,17 @@
+import UserController from '../controllers/UserController';
 import { Router } from '../core/Router';
 import { WebServer } from '../core/WebServer';
 
 export function registerUserRoutes(server: WebServer) {
   const router = new Router(server);
+  router.setPrefix('/api/users');
 
-  router.get('/', (_req, res) => {
-    res.ok({ message: 'ok' });
-  });
+  router.get('', UserController.getUsers);
+  router.get('/{userId}', UserController.getUserById);
 
-  router.get('/{id}', (req, res) => {
-    const id = req.getParam('id');
-    res.ok({ message: `User ID: ${id}` });
-  });
+  router.post('', UserController.createUser);
+
+  router.put('/{userId}', UserController.updateUser);
+
+  router.delete('/{userId}', UserController.deleteUser);
 }

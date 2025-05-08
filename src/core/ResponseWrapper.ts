@@ -31,8 +31,15 @@ export class ResponseWrapper {
     this.send(HTTP_STATUS.INTERNAL_SERVER_ERROR, { error: message });
   }
 
-  private send(statusCode: number, data?: unknown): void {
+  private send(statusCode: number, data: object): void {
+    if (this.res.headersSent) return;
+
+    const responseData = {
+      status: statusCode,
+      ...data,
+    };
+
     this.res.writeHead(statusCode, { 'Content-Type': 'application/json' });
-    this.res.end(data !== undefined ? JSON.stringify(data) : undefined);
+    this.res.end(JSON.stringify(responseData));
   }
 }

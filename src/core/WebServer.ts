@@ -1,8 +1,13 @@
 import http, { IncomingMessage, ServerResponse } from 'http';
 import { ResponseWrapper } from './ResponseWrapper';
 import { RequestWrapper } from './RequestWrapper';
+import { NotFoundError } from '../errors/NotFoundError';
+import { BedRequestError } from '../errors/BadRequestError';
 
-export type Handler = (req: RequestWrapper, res: ResponseWrapper) => void;
+export type Handler = (
+  req: RequestWrapper,
+  res: ResponseWrapper,
+) => Promise<void>;
 
 export enum HTTP_METHODS {
   GET = 'GET',
@@ -47,7 +52,10 @@ export class WebServer {
     this.routes.push({ method, path, handler, regex });
   }
 
-  private handleRequest(req: IncomingMessage, res: ServerResponse): void {
+  private async handleRequest(
+    req: IncomingMessage,
+    res: ServerResponse,
+  ): Promise<void> {
     const method = req.method?.toUpperCase();
     const url = req.url;
     const response = new ResponseWrapper(res);
@@ -68,15 +76,22 @@ export class WebServer {
 
     try {
       const request = new RequestWrapper(req, route.path, route.regex);
-      route.handler(request, response);
+      await route.handler(request, response);
     } catch (err) {
+      if (err instanceof NotFoundError) {
+        response.notFound(err.message);
+        return;
+      }
+      if (err instanceof BedRequestError) {
+        response.badRequest(err.message);
+      }
       response.serverError(`Internal Server Error: ${(err as Error).message}`);
     }
   }
 
   private createRouteRegex(path: string): RegExp {
     const paramPattern = /{(\w+)}/g;
-    const regexPath = path.replace(paramPattern, '(\\w+)');
+    const regexPath = path.replace(paramPattern, '([\\w-]+)');
     return new RegExp(`^${regexPath}$`);
   }
 }

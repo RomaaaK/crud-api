@@ -14,18 +14,19 @@ export class RequestWrapper {
     if (!raw.url) throw new Error('Request URL is missing');
 
     this.url = raw.url;
+    this.headers = raw.headers;
     this.params = this.extractParams(routePath, this.url, regex);
   }
 
-  public getParam(name: string): string | undefined {
-    return this.params[name];
+  public getParam(name: string): string {
+    return this.params[name]!;
   }
 
   public async getBody<T = unknown>(
     maxSize: number = 1024 * 1024,
     contentType: string = 'application/json',
   ): Promise<T> {
-    const actualContentType = this.getHeader('content-type') || '';
+    const actualContentType = this.getHeader('Content-Type') || '';
     if (!actualContentType.includes(contentType)) {
       throw new Error(`Unsupported Content-Type. Expected ${contentType}`);
     }
