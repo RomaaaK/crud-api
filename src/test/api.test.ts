@@ -1,6 +1,6 @@
 import http from 'http';
-import server from '../src/main';
-import { User } from '../src/models/UserModel';
+import server from '../main';
+import { User } from '../models/UserModel';
 
 let createdUser: User;
 
