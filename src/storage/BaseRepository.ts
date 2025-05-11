@@ -1,28 +1,82 @@
+import 'dotenv/config';
+import { HTTP_METHODS } from '../core/WebServer';
+import { request } from 'http';
+
+interface ApiResponse<T> {
+  data?: T;
+}
+
 export class BaseRepository<T extends { id: string }> {
-  protected data: T[] = [];
+  private hostname = 'localhost';
+  private port = parseInt(process.env.DB_PORT || '5000');
+  private pathPrefix = '/api/db';
 
-  public findAll(): T[] {
-    return this.data;
+  public async findAll(): Promise<T[]> {
+    const response = await this.makeRequest<T[]>(
+      HTTP_METHODS.GET,
+      this.pathPrefix,
+    );
+    return response.data ?? [];
   }
 
-  public findById(id: string): T | undefined {
-    return this.data.find((item) => item.id === id);
+  public async findById(id: string): Promise<T | undefined> {
+    const response = await this.makeRequest<T>(
+      HTTP_METHODS.GET,
+      `${this.pathPrefix}/${id}`,
+    );
+    return response.data;
   }
 
-  public save(entity: T): void {
-    this.data.push(entity);
+  public async save(entity: T): Promise<void> {
+    await this.makeRequest(HTTP_METHODS.POST, this.pathPrefix, entity);
   }
 
-  public update(id: string, updated: Omit<T, 'id'>): T {
-    const index = this.data.findIndex((item) => item.id === id);
-    this.data[index] = { id, ...updated } as T;
-    return this.data[index];
+  public async update(id: string, updated: Partial<Omit<T, 'id'>>): Promise<T> {
+    const response = await this.makeRequest<T>(
+      HTTP_METHODS.PUT,
+      `${this.pathPrefix}/${id}`,
+      updated,
+    );
+    return response.data!;
   }
 
-  public deleteById(id: string): boolean {
-    const index = this.data.findIndex((item) => item.id === id);
-    if (index === -1) return false;
-    this.data.splice(index, 1);
-    return true;
+  public async deleteById(id: string): Promise<void> {
+    await this.makeRequest(HTTP_METHODS.DELETE, `${this.pathPrefix}/${id}`);
+  }
+
+  private async makeRequest<R>(
+    method: string,
+    path: string,
+    body?: object,
+  ): Promise<ApiResponse<R>> {
+    return new Promise((resolve, reject) => {
+      const data = body ? JSON.stringify(body) : undefined;
+      const options = {
+        hostname: this.hostname,
+        port: this.port,
+        path,
+        method,
+        headers: {
+          'Content-Type': 'application/json',
+          ...(data ? { 'Content-Length': Buffer.byteLength(data) } : {}),
+        },
+      };
+
+      const req = request(options, (res) => {
+        let responseData = '';
+        res.on('data', (chunk) => {
+          responseData += chunk;
+        });
+        res.on('end', () => {
+          const parsed = responseData ? JSON.parse(responseData) : {};
+          resolve({ data: parsed.data as R });
+        });
+      });
+
+      req.on('error', reject);
+
+      if (data) req.write(data);
+      req.end();
+    });
   }
 }

@@ -14,8 +14,10 @@ class UserService {
     if (!validate(id)) {
       throw new BedRequestError(`Invalid UUID: ${id}`);
     }
-    const user = UserRepository.findById(id);
-    if (!user) throw new NotFoundError(`User with ID ${id} not found`);
+    const user = await UserRepository.findById(id);
+    if (!user) {
+      throw new NotFoundError(`User with ID ${id} not found`);
+    }
     return user;
   }
 

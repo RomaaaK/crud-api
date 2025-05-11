@@ -34,9 +34,9 @@ export class WebServer {
     this.server = http.createServer(this.handleRequest.bind(this));
   }
 
-  public start(callback?: () => void): void {
+  public start(name: string, callback?: () => void): void {
     this.server.listen(this.port, () => {
-      console.log(`Server is running on port ${this.port}`);
+      console.log(`${name} Server is running on port ${this.port}`);
       if (callback) callback();
     });
   }

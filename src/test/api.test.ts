@@ -1,18 +1,23 @@
 import http from 'http';
 import server from '../main';
 import { User } from '../models/UserModel';
+import db from '../db';
 
 let createdUser: User;
 
 beforeAll((done) => {
-  server.start(() => {
-    done();
+  db.start('DB', () => {
+    server.start('Web', () => {
+      done();
+    });
   });
 });
 
 afterAll(() => {
   return new Promise<void>((resolve) => {
-    server.stop(resolve);
+    db.stop(() => {
+      server.stop(resolve);
+    });
   });
 });
 
