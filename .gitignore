@@ -23,7 +23,7 @@
 Thumbs.db
 
 # environment variables
-.env
+# .env
 
 # coverage reports (если используешь Jest, Istanbul или другие тестовые покрытия)
 /coverage/
